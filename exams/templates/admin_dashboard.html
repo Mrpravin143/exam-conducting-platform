@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; }
+        .sidebar {
+            height: 100vh;
+            background: #343a40;
+            padding-top: 20px;
+            position: fixed;
+            width: 220px;
+        }
+        .sidebar a {
+            color: #ddd;
+            display: block;
+            padding: 12px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .sidebar a:hover {
+            background: #495057;
+            color: #fff;
+        }
+        .content {
+            margin-left: 230px;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="text-center text-light">Admin Panel</h4>
+        <a href="#">Dashboard</a>
+        <a href="#">Exams</a>
+        <a href="#">Students</a>
+        <a href="#">Results</a>
+        <a href="#">Settings</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <div class="container">
+            <h2 class="mb-4">Exam Management</h2>
+
+            <!-- Exam Create Form -->
+            <div class="card shadow p-4 mb-4">
+                <h5>Create New Exam</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Exam Title</label>
+                        <input type="text" name="title" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Exam Date</label>
+                        <input type="datetime-local" name="exam_date" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Duration (Minutes)</label>
+                        <input type="number" name="duration_minutes" class="form-control" value="30" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-2">Create Exam</button>
+                </form>
+            </div>
+
+            <!-- Exam List -->
+            <div class="card shadow p-4">
+                <h5>All Exams</h5>
+                <table class="table table-striped mt-3">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Exam Date</th>
+                            <th>Duration (min)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exam in exams %}
+                        <tr>
+                            <td>{{ exam.title }}</td>
+                            <td>{{ exam.description }}</td>
+                            <td>{{ exam.exam_date }}</td>
+                            <td>{{ exam.duration_minutes }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No exams created yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        
+<!-- Results of Students -->
+
+<div class="card shadow p-4 mt-4">
+    <h5>Students Results {% if selected_exam %} - {{ selected_exam.title }}{% endif %}</h5>
+    
+    <!-- Exam Filter -->
+    <form method="get" class="mb-3">
+        <label>Filter by Exam:</label>
+        <select name="exam" class="form-select w-auto d-inline-block">
+            <option value="">-- Select Exam --</option>
+            {% for exam in exams %}
+                <option value="{{ exam.id }}" {% if selected_exam and selected_exam.id == exam.id %}selected{% endif %}>
+                    {{ exam.title }}
+                </option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary btn-sm">Filter</button>
+    </form>
+
+    {% if students_results %}
+    <table class="table table-striped mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>Rank</th>
+                <th>Student</th>
+                <th>Total Marks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for res in students_results %}
+            <tr {% if forloop.counter <= 3 %}class="table-success"{% endif %}>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ res.student.username }}</td>
+                <td>{{ res.total_marks }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h6 class="mt-3">Top 3 Students Highlighted in Green</h6>
+    {% else %}
+        <p class="text-center mt-3">No results available for this exam yet.</p>
+    {% endif %}
+</div>
+</div>
+
+
+</body>
+</html>

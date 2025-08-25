@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Start Exam</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { display: flex; font-family: Arial, sans-serif; background:#f4f6f9; }
+        .left { width: 60%; padding: 20px; overflow-y: auto; height: 100vh; }
+        .right { width: 40%; padding: 20px; display: flex; justify-content: center; align-items: center; }
+        .card { border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .timer { font-size: 22px; font-weight: bold; color: red; }
+    </style>
+</head>
+<body>
+    <!-- Left side guidelines -->
+    <div class="left">
+        <h2 class="mb-4">Exam Guidelines</h2>
+        <ul class="list-group">
+            <li class="list-group-item">1. Read all instructions carefully.</li>
+            <li class="list-group-item">2. Do not refresh the page.</li>
+            <li class="list-group-item">3. One question per page will be displayed.</li>
+            <li class="list-group-item">4. Exam will auto start when timer ends.</li>
+            <li class="list-group-item">5. Stay connected to internet.</li>
+        </ul>
+    </div>
+
+    <!-- Right side login card -->
+    <div class="right">
+        <div class="card text-dark bg-warning mb-3" style="max-width: 28rem; width:100%;">
+            <div class="card-header text-center">
+                <h4 class="mb-0">{{ exam.title }}</h4>
+            </div>
+            <div class="card-body text-center">
+                <p class="card-text"><b>Unique ID:</b> {{ session.unique_id }}</p>
+                <p class="card-text"><b>Username:</b> {{ request.user.username }}</p>
+                <p class="timer" id="timer"></p>
+                <div class="alert alert-dark mt-3">
+                    Your exam will automatically start when the countdown finishes.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Exam start time from backend (ISO format)
+        var examDate = new Date("{{ exam.exam_date|date:'Y-m-d H:i:s' }}").getTime();
+
+        var timer = document.getElementById("timer");
+
+        var countdown = setInterval(function(){
+            var now = new Date().getTime();
+            var distance = examDate - now;
+
+            if(distance > 0){
+                var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                timer.innerHTML = "Exam starts in: " + days + "d " + hours + "h "
+                                  + minutes + "m " + seconds + "s ";
+            } else {
+                // Time is up, redirect to first question
+                clearInterval(countdown);
+                window.location.href = "{% url 'exam_question' session.id 1 %}";
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
