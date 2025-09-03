@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.contrib import messages
 import uuid
 import datetime
-from django.db.models import Sum
+from django.db.models import Avg, Count, Max, Min, Sum
 
 
 
@@ -24,49 +24,32 @@ def student_dashboard(request):
 
 def admin_dashboard(request):
     exams = Exam.objects.all().order_by('-exam_date')
-    selected_exam_id = request.GET.get("exam")  # filter by exam
-    selected_exam = None  # new
 
-    # Handle exam creation
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description")
         exam_date = request.POST.get("exam_date")
         duration_minutes = request.POST.get("duration_minutes")
 
-        Exam.objects.create(
-            title=title,
-            description=description,
-            exam_date=exam_date,
-            duration_minutes=duration_minutes
-        )
-        return redirect('admin_dashboard')
+        if title and exam_date:
+            Exam.objects.create(
+                title=title,
+                description=description,
+                exam_date=exam_date,
+                duration_minutes=duration_minutes
+            )
+            messages.success(request, f"Exam '{title}' created successfully!")
+            return redirect('admin_exam_create')
+        else:
+            messages.error(request, "Title and Exam Date are required!")
 
-    # Students-wise results
-    students_results = []
-    top_students = []
-    if selected_exam_id:
-        selected_exam = exams.filter(id=selected_exam_id).first()  # template-friendly
-        if selected_exam:
-            sessions = StudentExamSession.objects.filter(exam=selected_exam)
-            for s in sessions:
-                total_marks = StudentAnswer.objects.filter(session=s).aggregate(total=Sum('marks_obtained'))['total'] or 0
-                students_results.append({
-                    "student": s.student,
-                    "total_marks": total_marks
-                })
+    return render(request, 'admin_dashboard.html', {"exams": exams})
+    
 
-            # Sort descending
-            students_results = sorted(students_results, key=lambda x: x['total_marks'], reverse=True)
-            top_students = students_results[:10]  # top 10
-
-    return render(request, 'admin_dashboard.html', {
-        "exams": exams,
-        "students_results": students_results,
-        "top_students": top_students,
-        "selected_exam": selected_exam  # pass to template
-    })
-
+    exam = get_object_or_404(Exam, pk=pk)
+    exam.delete()
+    messages.success(request, f"Exam '{exam.title}' deleted successfully!")
+    return redirect('admin_dashboard')
 
 
 def start_exam(request, exam_id):
@@ -156,6 +139,41 @@ def exam_finish(request, session_id):
     session.is_submitted = True
     session.save()
     return render(request, "exam_finish.html", {"session": session})
+
+
+
+def admin_dashboard_data(request):
+    total_exams = Exam.objects.count()
+    total_students = StudentExamSession.objects.values("student").distinct().count()
+    total_sessions = StudentExamSession.objects.count()
+    submitted_sessions = StudentExamSession.objects.filter(is_submitted=True).count()
+
+    # Exams Stats
+    exams_stats = Exam.objects.annotate(
+        total_students=Count("studentexamsession"),
+        submitted=Count("studentexamsession", filter=models.Q(studentexamsession__is_submitted=True)),
+        avg_marks=Avg("studentexamsession__studentanswer__marks_obtained"),
+        max_marks=Max("studentexamsession__studentanswer__marks_obtained"),
+        min_marks=Min("studentexamsession__studentanswer__marks_obtained"),
+    )
+
+    # Question stats
+    total_questions = Question.objects.count()
+    mcq_count = Question.objects.filter(question_type="MCQ").count()
+    desc_count = Question.objects.filter(question_type="DESC").count()
+
+    context = {
+        "total_exams": total_exams,
+        "total_students": total_students,
+        "total_sessions": total_sessions,
+        "submitted_sessions": submitted_sessions,
+        "submission_rate": (submitted_sessions / total_sessions * 100) if total_sessions else 0,
+        "exams_stats": exams_stats,
+        "total_questions": total_questions,
+        "mcq_count": mcq_count,
+        "desc_count": desc_count,
+    }
+    return render(request, "admin_data.html", context)
 
 
 
