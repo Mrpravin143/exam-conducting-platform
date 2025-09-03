@@ -41,11 +41,71 @@
         .card-text {
             color: #555;
         }
+        /* Student info card */
+        .student-card{
+        position: fixed;         
+        top: 16px;
+        right: 16px;
+        z-index: 1050;           
+    
+        background: #cfcfc9;     
+        color: #111;
+        padding: 15px 16px;
+        width: auto; 
+        height: 200px;           
+        box-shadow: 0 6px 20px rgba(0,0,0,.12);
+        text-align: center;      
+        border: 1px solid #e5e7eb;
+        }
+
+        /* Profile photo styling */
+        .student-photo{
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border: 2px solid #080404;
+        box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+
+        /* Text tweaks */
+        .student-card p{
+        margin: 0.25rem 0;
+        }
+
+        /* Responsive: छोट्या स्क्रीन्सवर थोडे छोटे करा */
+        @media (max-width: 576px){
+        .student-card{
+            width: 200px;
+            top: 10px;
+            right: 10px;
+            padding: 10px 12px;
+        }
+        .student-photo{
+            width: 64px;
+            height: 64px;
+        }
+        }
+
+        
+
     </style>
 </head>
 <body>
 
-<div class="container mt-5">
+<div class="container mt-5 position-relative">
+
+<!-- Student Info Card -->
+<div class="student-card d-flex flex-column align-items-center justify-content-rigth">
+    {% if request.user.candidate_image %}
+        <img src="{{ request.user.candidate_image.url }}" alt="Profile Photo" class="student-photo mb-2">
+    {% else %}
+        <img src="https://via.placeholder.com/80" alt="Profile Photo" class="student-photo mb-2">
+    {% endif %}
+    <p class="fw-bold mb-1" style="font-size: x-large;">Student ID: {{ request.user.enrollment_number }}</p>
+    <p class="text-muted fs-6 mb-0">Last Login: {{ request.user.last_login|date:"d M, Y H:i" }}</p>
+</div>
+
+
     <h2>Upcoming Exams</h2>
 
     {% if NewExam %}

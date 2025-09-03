@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'TechclubExamPlatform.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'SecureExamPortal',  
+        'NAME': 'ExamPortal',  
         'USER': 'postgres',  
         'PASSWORD': 'Pravin6670@#$',  
         'HOST': 'localhost',  
@@ -105,6 +105,11 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 
 
 
