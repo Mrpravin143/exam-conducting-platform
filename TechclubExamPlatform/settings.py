@@ -162,3 +162,14 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# SMTP Logic
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "pravinsaindane2005@gmail.com"  
+EMAIL_HOST_PASSWORD = "ephl qtkp pbse olgg"  # App Password (साधं Gmail password नको)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

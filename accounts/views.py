@@ -4,7 +4,10 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from accounts.models import User   
-
+from django.core.mail import send_mail
+import random
+from accounts.utils import send_registration_email
+from django.utils import timezone
 
 
 # Create your views here.
@@ -30,6 +33,7 @@ def register_view(request):
             messages.error(request, "Username already taken.")
             return render(request, "register.html")
 
+        # User create
         user = User(
             username=username,
             email=email,
@@ -39,14 +43,49 @@ def register_view(request):
         )
         user.save()  # enrollment_number auto generate 
 
-        context = {
-            "enrollment_number": user.enrollment_number,
-            "username": user.username,
-            "candidate_image_url": user.candidate_image.url if user.candidate_image else None,
-        }
-        return render(request, "registration_success.html", context)
 
+        # Generate OTP
+        otp = f"{random.randint(100000, 999999)}"
+        user.set_otp(otp)
+       
+
+        # Send email + OTP
+        if email:
+            send_registration_email(user, otp)
+
+        # Save user id in session
+        request.session["user_id"] = user.id  
+
+        return redirect("otp_verify")  # OTP verify page
+        
     return render(request, "register.html")
+
+
+def otp_verify_view(request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("register")
+
+    user = User.objects.get(id=user_id)
+
+    if request.method == "POST":
+        entered_otp = request.POST.get("otp", "").strip()
+        if user.verify_otp(entered_otp):
+            user.is_verified = True
+            user.otp = None
+            user.otp_created_at = None
+            user.save()
+            del request.session["user_id"]
+            return render(request, "registration_success.html", {
+                "enrollment_number": user.enrollment_number,
+                "username": user.username,
+                "candidate_image_url": user.candidate_image.url if user.candidate_image else None
+            })
+        else:
+            messages.error(request, "Invalid OTP or OTP expired. Please try again.")
+
+    return render(request, "otp_verify.html")
+
 
 
 

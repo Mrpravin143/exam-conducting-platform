@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verify</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f6f9;
+            font-family: Arial, sans-serif;
+        }
+        .otp-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 350px;
+        }
+        .otp-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .otp-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            letter-spacing: 5px;
+        }
+        .otp-container button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .otp-container button:hover {
+            background-color: #0056b3;
+        }
+        .messages {
+            margin-bottom: 15px;
+        }
+        .messages p {
+            background-color: #ffdddd;
+            color: #a94442;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="otp-container">
+    <h2>Enter OTP</h2>
+
+    <div class="messages">
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="otp" placeholder="Enter 6-digit OTP" maxlength="6" required>
+        <button type="submit">Verify</button>
+    </form>
+</div>
+
+</body>
+</html>
